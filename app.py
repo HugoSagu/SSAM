@@ -9,38 +9,32 @@ import streamlit as st
 # CONFIGURACIÓN DE PÁGINA
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="SSAM • Executive Performance Dashboard",
+    page_title="SSAM • Performance & POS Operations Dashboard",
     page_icon="🍲",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # ---------------------------------------------------------
-# ESTILOS CSS PERSONALIZADOS (FONDO BLANCO & ESTILO DASHBOARD EJECUTIVO)
+# ESTILOS CSS PERSONALIZADOS (DISEÑO BLANCO EJECUTIVO)
 # ---------------------------------------------------------
 SSAM_LIGHT_CSS = """
 <style>
-    /* Fondo principal blanco estilo reporte/slide */
     .stApp {
         background-color: #FFFFFF;
         color: #1F2937;
         font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
-    
-    /* Barra lateral en tono gris muy claro para contraste tenue */
     [data-testid="stSidebar"] {
         background-color: #F8FAFC;
         border-right: 1px solid #E2E8F0;
     }
-    
-    /* Encabezados y Títulos */
     h1, h2, h3, h4 {
         color: #0F172A !important;
         font-weight: 700 !important;
         letter-spacing: -0.3px;
     }
-    
-    /* Tarjetas de Métricas KPI estilo Dashboard Blanco */
+    /* Estilo de Tarjetas KPI */
     [data-testid="stMetric"] {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -58,13 +52,12 @@ SSAM_LIGHT_CSS = """
     }
     [data-testid="stMetricValue"] {
         color: #0F172A !important;
-        font-size: 1.5rem !important;
+        font-size: 1.4rem !important;
         font-weight: 700 !important;
     }
-    
-    /* Pestañas (Tabs) Estilo Corporativo Limpio */
+    /* Pestañas (Tabs) */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 12px;
+        gap: 8px;
         background-color: #F1F5F9;
         padding: 6px;
         border-radius: 8px;
@@ -74,15 +67,14 @@ SSAM_LIGHT_CSS = """
         color: #475569;
         background-color: transparent;
         border-radius: 6px;
-        padding: 0px 18px;
+        padding: 0px 16px;
         font-weight: 600;
     }
     .stTabs [aria-selected="true"] {
         background-color: #C82A2A !important;
         color: #FFFFFF !important;
     }
-    
-    /* Tarjeta Contenedora de Gráficos (Estilo Módulo) */
+    /* Tarjeta Contenedora de Gráficos */
     .chart-card {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -92,7 +84,7 @@ SSAM_LIGHT_CSS = """
         margin-bottom: 12px;
     }
     .chart-header {
-        font-size: 0.95rem;
+        font-size: 0.90rem;
         font-weight: 700;
         color: #1E293B;
         margin-bottom: 8px;
@@ -100,8 +92,6 @@ SSAM_LIGHT_CSS = """
         border-bottom: 1px solid #F1F5F9;
         padding-bottom: 6px;
     }
-
-    /* Tabla de Datos */
     [data-testid="stDataFrame"] {
         background-color: #FFFFFF;
         border-radius: 6px;
@@ -111,12 +101,13 @@ SSAM_LIGHT_CSS = """
 """
 st.markdown(SSAM_LIGHT_CSS, unsafe_allow_html=True)
 
-# Paleta de Colores
+# Paleta de Colores SSAM
 COLOR_RED = "#C82A2A"
 COLOR_GOLD = "#D97706"
 COLOR_BLUE = "#2563EB"
 COLOR_GREEN = "#16A34A"
 COLOR_CYAN = "#0891B2"
+COLOR_PURPLE = "#9333EA"
 PALETTE_LIGHT = [
     "#C82A2A",
     "#D97706",
@@ -128,10 +119,11 @@ PALETTE_LIGHT = [
 
 
 # ---------------------------------------------------------
-# DATOS OPERATIVOS Y COMPARATIVOS
+# CARGA DE DATOS (FINANCIEROS + PUNTO DE VENTA POS)
 # ---------------------------------------------------------
 @st.cache_data
 def load_data():
+  # 1. Datos Financieros por Sucursal
   df_sucursales = pd.DataFrame({
       "Sucursal": [
           "La Perla",
@@ -157,10 +149,6 @@ def load_data():
           1200000,
           1350000,
       ],
-      "Comensales_Mes": [5965, 4633, 2844, 2796, 2387, 2673],
-      "Ticket_Promedio": [530, 580, 560, 490, 510, 525],
-      "M2": [250, 220, 180, 140, 130, 150],
-      "Asientos": [110, 95, 75, 60, 55, 65],
       "Food_Cost_%": [23.5, 24.1, 22.8, 25.0, 24.5, 23.9],
       "Labor_Cost_%": [18.2, 19.5, 21.0, 22.4, 21.8, 20.6],
       "Renta_Mensual": [280000, 220000, 180000, 120000, 110000, 130000],
@@ -173,17 +161,50 @@ def load_data():
   df_sucursales["Rent_Cost_%"] = (
       df_sucursales["Renta_Mensual"] / df_sucursales["Ventas_Real"]
   ) * 100
-  df_sucursales["Venta_M2"] = (
-      df_sucursales["Ventas_Real"] / df_sucursales["M2"]
-  )
-  df_sucursales["Venta_Asiento"] = (
-      df_sucursales["Ventas_Real"] / df_sucursales["Asientos"]
-  )
   df_sucursales["EBITDA_Sucursal_$"] = df_sucursales["Ventas_Real"] * (
       df_sucursales["EBITDA_Sucursal_%"] / 100
   )
 
-  # Datos mensuales para la tendencia (Enero - Junio 2026)
+  # 2. Datos de Punto de Venta (POS) y Operaciones
+  df_pos = pd.DataFrame({
+      "Sucursal": [
+          "La Perla",
+          "Morelos",
+          "Punto Sur",
+          "Américas",
+          "Santa Fe",
+          "Insurgentes",
+      ],
+      "Ventas_Brutas": [3280000, 2790000, 1650000, 1420000, 1260000, 1450000],
+      "Descuentos_Cortesias_%": [3.6, 3.7, 3.5, 3.5, 3.4, 3.2],
+      "Comision_TPV_Delivery_%": [4.8, 5.2, 6.1, 6.8, 6.5, 5.9],
+      "Canal_Comedor_%": [75, 80, 65, 55, 60, 70],
+      "Canal_Takeout_%": [10, 8, 12, 15, 12, 10],
+      "Canal_Delivery_%": [15, 12, 23, 30, 28, 20],
+      "Cat_Alimentos_%": [72, 70, 74, 76, 75, 73],
+      "Cat_Bebidas_NoAlc_%": [12, 13, 11, 10, 11, 12],
+      "Cat_Bebidas_Alc_%": [12, 13, 11, 10, 10, 11],
+      "Cat_Postres_%": [4, 4, 4, 4, 4, 4],
+      "Asientos": [110, 95, 75, 60, 55, 65],
+      "Comensales_Mes": [5965, 4633, 2844, 2796, 2387, 2673],
+      "Tickets_Mes": [2386, 1853, 1138, 1118, 955, 1069],
+      "Headcount": [18, 15, 11, 9, 8, 9],
+  })
+
+  df_pos["Ventas_Netas"] = df_pos["Ventas_Brutas"] * (
+      1 - df_pos["Descuentos_Cortesias_%"] / 100
+  )
+  df_pos["Monto_Descuentos"] = (
+      df_pos["Ventas_Brutas"] - df_pos["Ventas_Netas"]
+  )
+  df_pos["Ticket_Promedio"] = df_pos["Ventas_Netas"] / df_pos["Tickets_Mes"]
+  df_pos["Vueltas_Mesa_Dia"] = (df_pos["Comensales_Mes"] / 30) / df_pos[
+      "Asientos"
+  ]
+  df_pos["Pax_por_Ticket"] = df_pos["Comensales_Mes"] / df_pos["Tickets_Mes"]
+  df_pos["Venta_por_Empleado"] = df_pos["Ventas_Netas"] / df_pos["Headcount"]
+
+  # 3. Tendencia Mensual
   meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"]
   trend_data = []
   np.random.seed(10)
@@ -206,7 +227,7 @@ def load_data():
       })
   df_trend = pd.DataFrame(trend_data)
 
-  # Peer Comparison Data
+  # 4. Peer Comparison
   df_peer = pd.DataFrame({
       "Métrica": [
           "Costo Materia Prima (Food Cost %)",
@@ -222,13 +243,13 @@ def load_data():
       "Benchmark Casual Premium": [26.0, 22.0, 48.0, 9.0, 26.0, 20.0, 550],
   })
 
-  return df_sucursales, df_trend, df_peer
+  return df_sucursales, df_pos, df_trend, df_peer
 
 
-df_sucursales, df_trend, df_peer = load_data()
+df_sucursales, df_pos, df_trend, df_peer = load_data()
 
 # ---------------------------------------------------------
-# BARRA LATERAL (LOGO MANTENIDO & FILTROS)
+# BARRA LATERAL (LOGO MANTENIDO)
 # ---------------------------------------------------------
 logo_candidates = ["logo.png", "assets/logo.png", "ssam_logo.png", "logo_ssam.png"]
 logo_path = next((path for path in logo_candidates if os.path.exists(path)), None)
@@ -258,32 +279,33 @@ sucursales_sel = st.sidebar.multiselect(
 )
 
 df_suc_filt = df_sucursales[df_sucursales["Sucursal"].isin(sucursales_sel)]
+df_pos_filt = df_pos[df_pos["Sucursal"].isin(sucursales_sel)]
 df_trend_filt = df_trend[df_trend["Sucursal"].isin(sucursales_sel)]
 
 # ---------------------------------------------------------
-# ENCABEZADO DE LA SLIDE / DASHBOARD
+# ENCABEZADO PRINCIPAL
 # ---------------------------------------------------------
 st.markdown(
-    "<h2 style='color:#0F172A; margin-bottom:0px;'>Branch Performance"
-    " Dashboard for Executive Leadership</h2>",
+    "<h2 style='color:#0F172A; margin-bottom:0px;'>SSAM • Executive Performance"
+    " & Operations Dashboard</h2>",
     unsafe_allow_html=True,
 )
 st.caption(
-    "Análisis de ingresos, costos operativos y rentabilidad por sucursal"
-    " alineado a estándares de la industria restaurantera."
+    "Métricas financieras, indicadores de Punto de Venta (POS) y"
+    " competitividad de mercado."
 )
 st.markdown("<br>", unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs([
-    "📊 1. Matriz Operativa por Sucursal",
-    "🏢 2. Benchmarking Consolidado vs Alsea",
+tab1, tab2, tab3 = st.tabs([
+    "📊 1. Matriz Financiera & P&L",
+    "🛍️ 2. Indicadores Punto de Venta (POS) & Operaciones",
+    "🏢 3. Benchmarking Consolidado vs Alsea",
 ])
 
 # =========================================================
-# PESTAÑA 1: LAYOUT MATRICIAL DE 3 COLUMNAS X 3 FILAS
+# PESTAÑA 1: MATRIZ FINANCIERA & P&L
 # =========================================================
 with tab1:
-  # KPI Top Bar
   k1, k2, k3, k4, k5 = st.columns(5)
   total_v = df_suc_filt["Ventas_Real"].sum()
   food_cost_avg = df_suc_filt["Food_Cost_%"].mean()
@@ -293,7 +315,7 @@ with tab1:
       if total_v > 0
       else 0
   )
-  ticket_avg = df_suc_filt["Ticket_Promedio"].mean()
+  ticket_avg = df_pos_filt["Ticket_Promedio"].mean()
 
   k1.metric("Ventas Totales", f"${total_v:,.0f}")
   k2.metric("Food Cost %", f"{food_cost_avg:.1f}%", delta="-5.3% vs Alsea")
@@ -303,14 +325,9 @@ with tab1:
 
   st.markdown("<br>", unsafe_allow_html=True)
 
-  # MATRIZ 3 COLUMNAS (REVENUE | COSTS / EXPENSES | PROFIT / EBITDA)
   col_rev, col_exp, col_prof = st.columns(3)
 
-  # -------------------------------------------------------
-  # COLUMNA 1: REVENUE (INGRESOS)
-  # -------------------------------------------------------
   with col_rev:
-    # Row 1: Annual / Monthly Revenue By Branch
     st.markdown(
         "<div class='chart-header'>Revenue By Branch (Actual vs"
         " Budget)</div>",
@@ -344,7 +361,6 @@ with tab1:
     )
     st.plotly_chart(fig_r1, use_container_width=True)
 
-    # Row 2: Revenue Trend
     st.markdown(
         "<div class='chart-header'>Revenue Trend (Monthly)</div>",
         unsafe_allow_html=True,
@@ -380,7 +396,6 @@ with tab1:
     )
     st.plotly_chart(fig_r2, use_container_width=True)
 
-    # Row 3: Top Branches By Revenue
     st.markdown(
         "<div class='chart-header'>Top Branches By Revenue Share</div>",
         unsafe_allow_html=True,
@@ -400,11 +415,7 @@ with tab1:
     )
     st.plotly_chart(fig_r3, use_container_width=True)
 
-  # -------------------------------------------------------
-  # COLUMNA 2: EXPENSES & PRIME COST (GASTOS Y COSTOS)
-  # -------------------------------------------------------
   with col_exp:
-    # Row 1: Prime Cost Structure By Branch
     st.markdown(
         "<div class='chart-header'>Expenses By Branch (Food vs Labor"
         " Cost)</div>",
@@ -438,7 +449,6 @@ with tab1:
     )
     st.plotly_chart(fig_e1, use_container_width=True)
 
-    # Row 2: Expense Trend
     st.markdown(
         "<div class='chart-header'>Expense Trend (Monthly Direct"
         " Costs)</div>",
@@ -459,7 +469,6 @@ with tab1:
     )
     st.plotly_chart(fig_e2, use_container_width=True)
 
-    # Row 3: Top Branches By Rent % (Cost of Occupancy)
     st.markdown(
         "<div class='chart-header'>Top Branches By Rent Expense %</div>",
         unsafe_allow_html=True,
@@ -479,11 +488,7 @@ with tab1:
     )
     st.plotly_chart(fig_e3, use_container_width=True)
 
-  # -------------------------------------------------------
-  # COLUMNA 3: PROFIT & EBITDA (RENTABILIDAD)
-  # -------------------------------------------------------
   with col_prof:
-    # Row 1: Profit / EBITDA By Branch
     st.markdown(
         "<div class='chart-header'>EBITDA By Branch ($ & %)</div>",
         unsafe_allow_html=True,
@@ -503,7 +508,6 @@ with tab1:
     )
     st.plotly_chart(fig_p1, use_container_width=True)
 
-    # Row 2: Profit Trend
     st.markdown(
         "<div class='chart-header'>Profit Trend (Monthly EBITDA)</div>",
         unsafe_allow_html=True,
@@ -525,7 +529,6 @@ with tab1:
     )
     st.plotly_chart(fig_p2, use_container_width=True)
 
-    # Row 3: Top Branches By Profit Share
     st.markdown(
         "<div class='chart-header'>Top Branches By EBITDA Contribution</div>",
         unsafe_allow_html=True,
@@ -545,115 +548,112 @@ with tab1:
     )
     st.plotly_chart(fig_p3, use_container_width=True)
 
-  st.markdown("---")
-  st.subheader("Cuadro Resumen de Indicadores por Sucursal")
-  st.dataframe(
-      df_suc_filt[[
-          "Sucursal",
-          "Ventas_Real",
-          "Ticket_Promedio",
-          "Venta_M2",
-          "Food_Cost_%",
-          "Labor_Cost_%",
-          "Prime_Cost_%",
-          "Rent_Cost_%",
-          "EBITDA_Sucursal_%",
-      ]].style.format({
-          "Ventas_Real": "${:,.0f}",
-          "Ticket_Promedio": "${:,.0f}",
-          "Venta_M2": "${:,.0f}",
-          "Food_Cost_%": "{:.1f}%",
-          "Labor_Cost_%": "{:.1f}%",
-          "Prime_Cost_%": "{:.1f}%",
-          "Rent_Cost_%": "{:.1f}%",
-          "EBITDA_Sucursal_%": "{:.1f}%",
-      }),
-      use_container_width=True,
-  )
-
 # =========================================================
-# PESTAÑA 2: PEER COMPARISON VS ALSEA & SECTOR
+# PESTAÑA 2: REQUERIMIENTOS DE PUNTO DE VENTA (POS) & OPERACIONES
 # =========================================================
 with tab2:
-  st.subheader("Benchmarking Consolidado: SSAM vs Alsea & Sector Premium")
-  st.caption("Fondo blanco corporativo para reporte de comparabilidad.")
+  st.subheader("Indicadores Operativos & Punto de Venta (POS)")
+  st.caption(
+      "Métricas extraídas directamente del sistema de caja, terminales TPV y"
+      " plantilla de personal."
+  )
 
-  cp1, cp2, cp3 = st.columns(3)
+  # KPIs de Control Operativo
+  p_k1, p_k2, p_k3, p_k4, p_k5 = st.columns(5)
+  total_bruto = df_pos_filt["Ventas_Brutas"].sum()
+  desc_total = df_pos_filt["Monto_Descuentos"].sum()
+  desc_pct_avg = (desc_total / total_bruto) * 100
+  comis_tpv_avg = df_pos_filt["Comision_TPV_Delivery_%"].mean()
+  vueltas_avg = df_pos_filt["Vueltas_Mesa_Dia"].mean()
+  venta_emp_avg = df_pos_filt["Venta_por_Empleado"].mean()
 
-  with cp1:
+  p_k1.metric("Venta Bruta Total", f"${total_bruto:,.0f}")
+  p_k2.metric(
+      "Descuentos & Cortesías",
+      f"{desc_pct_avg:.1f}%",
+      delta=f"-${desc_total:,.0f}",
+  )
+  p_k3.metric("Comisiones TPV / Apps %", f"{comis_tpv_avg:.1f}%")
+  p_k4.metric("Rotación de Mesa (Vueltas/día)", f"{vueltas_avg:.2f} pax/asiento")
+  p_k5.metric("Venta Mensual / Empleado", f"${venta_emp_avg:,.0f}")
+
+  st.markdown("<br>", unsafe_allow_html=True)
+
+  pos_col1, pos_col2 = st.columns(2)
+
+  with pos_col1:
     st.markdown(
-        "<div class='chart-header'>Costo Materia Prima vs Peer Group</div>",
+        "<div class='chart-header'>Mezcla de Canales de Venta (% por"
+        " Sucursal)</div>",
         unsafe_allow_html=True,
     )
-    fig_peer_food = px.bar(
-        df_peer[df_peer["Métrica"].str.contains("Food Cost")],
-        x="Métrica",
-        y=[
-            "SSAM (Consolidado 2026)",
-            "Alsea (Casual Dining MX)",
-            "Benchmark Casual Premium",
-        ],
-        barmode="group",
+    fig_chan = px.bar(
+        df_pos_filt,
+        x="Sucursal",
+        y=["Canal_Comedor_%", "Canal_Takeout_%", "Canal_Delivery_%"],
+        labels={"value": "Porcentaje %", "variable": "Canal"},
         template="plotly_white",
         color_discrete_sequence=[COLOR_RED, COLOR_GOLD, COLOR_BLUE],
     )
-    fig_peer_food.update_layout(
-        height=280,
+    fig_chan.update_layout(
+        barmode="stack",
+        height=260,
         margin=dict(t=10, b=10, l=10, r=10),
         legend=dict(
             orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
         ),
     )
-    st.plotly_chart(fig_peer_food, use_container_width=True)
+    st.plotly_chart(fig_chan, use_container_width=True)
 
-  with cp2:
     st.markdown(
-        "<div class='chart-header'>Prime Cost (Food + Labor %)</div>",
+        "<div class='chart-header'>Controles POS: Descuentos/Cortesías vs"
+        " Comisiones TPV & Delivery (%)</div>",
         unsafe_allow_html=True,
     )
-    fig_peer_prime = px.bar(
-        df_peer[df_peer["Métrica"].str.contains("Prime Cost")],
-        x="Métrica",
-        y=[
-            "SSAM (Consolidado 2026)",
-            "Alsea (Casual Dining MX)",
-            "Benchmark Casual Premium",
-        ],
+    fig_ctrl = go.Figure()
+    fig_ctrl.add_trace(
+        go.Bar(
+            x=df_pos_filt["Sucursal"],
+            y=df_pos_filt["Descuentos_Cortesias_%"],
+            name="Descuentos & Cortesías %",
+            marker_color=COLOR_PURPLE,
+        )
+    )
+    fig_ctrl.add_trace(
+        go.Bar(
+            x=df_pos_filt["Sucursal"],
+            y=df_pos_filt["Comision_TPV_Delivery_%"],
+            name="Comisiones TPV & Delivery %",
+            marker_color=COLOR_CYAN,
+        )
+    )
+    fig_ctrl.update_layout(
         barmode="group",
         template="plotly_white",
-        color_discrete_sequence=[COLOR_RED, COLOR_GOLD, COLOR_BLUE],
-    )
-    fig_peer_prime.update_layout(
-        height=280,
+        height=260,
         margin=dict(t=10, b=10, l=10, r=10),
-        showlegend=False,
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+        ),
     )
-    st.plotly_chart(fig_peer_prime, use_container_width=True)
+    st.plotly_chart(fig_ctrl, use_container_width=True)
 
-  with cp3:
+  with pos_col2:
     st.markdown(
-        "<div class='chart-header'>Margen EBITDA Consolidado %</div>",
+        "<div class='chart-header'>Mix de Producto por Categoría (%)</div>",
         unsafe_allow_html=True,
     )
-    fig_peer_ebitda = px.bar(
-        df_peer[df_peer["Métrica"].str.contains("Margen EBITDA")],
-        x="Métrica",
+    fig_cat = px.bar(
+        df_pos_filt,
+        x="Sucursal",
         y=[
-            "SSAM (Consolidado 2026)",
-            "Alsea (Casual Dining MX)",
-            "Benchmark Casual Premium",
+            "Cat_Alimentos_%",
+            "Cat_Bebidas_NoAlc_%",
+            "Cat_Bebidas_Alc_%",
+            "Cat_Postres_%",
         ],
-        barmode="group",
+        labels={"value": "Porcentaje %", "variable": "Categoría"},
         template="plotly_white",
-        color_discrete_sequence=[COLOR_RED, COLOR_GOLD, COLOR_BLUE],
+        color_discrete_sequence=[COLOR_GREEN, COLOR_CYAN, COLOR_GOLD, COLOR_PURPLE],
     )
-    fig_peer_ebitda.update_layout(
-        height=280,
-        margin=dict(t=10, b=10, l=10, r=10),
-        showlegend=False,
-    )
-    st.plotly_chart(fig_peer_ebitda, use_container_width=True)
-
-  st.markdown("---")
-  st.subheader("Tabla Comparativa General")
-  st.dataframe(df_peer, use_container_width=True)
+    fig_cat.upda
