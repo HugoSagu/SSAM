@@ -9,7 +9,7 @@ import streamlit as st
 # CONFIGURACIÓN DE PÁGINA
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="SSAM • Performance & POS Operations Dashboard",
+    page_title="SSAM • Dashboard Ejecutivo de Desempeño y Operaciones",
     page_icon="🍲",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -178,13 +178,13 @@ def load_data():
       "Ventas_Brutas": [3280000, 2790000, 1650000, 1420000, 1260000, 1450000],
       "Descuentos_Cortesias_%": [3.6, 3.7, 3.5, 3.5, 3.4, 3.2],
       "Comision_TPV_Delivery_%": [4.8, 5.2, 6.1, 6.8, 6.5, 5.9],
-      "Canal_Comedor_%": [75, 80, 65, 55, 60, 70],
-      "Canal_Takeout_%": [10, 8, 12, 15, 12, 10],
-      "Canal_Delivery_%": [15, 12, 23, 30, 28, 20],
-      "Cat_Alimentos_%": [72, 70, 74, 76, 75, 73],
-      "Cat_Bebidas_NoAlc_%": [12, 13, 11, 10, 11, 12],
-      "Cat_Bebidas_Alc_%": [12, 13, 11, 10, 10, 11],
-      "Cat_Postres_%": [4, 4, 4, 4, 4, 4],
+      "Comedor": [75, 80, 65, 55, 60, 70],
+      "Para Llevar": [10, 8, 12, 15, 12, 10],
+      "Delivery": [15, 12, 23, 30, 28, 20],
+      "Alimentos": [72, 70, 74, 76, 75, 73],
+      "Bebidas No Alc.": [12, 13, 11, 10, 11, 12],
+      "Bebidas Alc.": [12, 13, 11, 10, 10, 11],
+      "Postres": [4, 4, 4, 4, 4, 4],
       "Asientos": [110, 95, 75, 60, 55, 65],
       "Comensales_Mes": [5965, 4633, 2844, 2796, 2387, 2673],
       "Tickets_Mes": [2386, 1853, 1138, 1118, 955, 1069],
@@ -234,13 +234,13 @@ def load_data():
           "Nómina Directa (Labor Cost %)",
           "Prime Cost (Food + Labor %)",
           "Costo Ocupación / Renta %",
-          "Gastos Operativos & Admón %",
+          "Gastos Operativos y Admón %",
           "Margen EBITDA Consolidado %",
           "Ticket Promedio ($ MXN)",
       ],
       "SSAM (Consolidado 2026)": [24.2, 21.5, 45.7, 8.8, 37.8, 16.5, 532],
       "Alsea (Casual Dining MX)": [29.5, 22.5, 52.0, 9.5, 25.7, 21.8, 410],
-      "Benchmark Casual Premium": [26.0, 22.0, 48.0, 9.0, 26.0, 20.0, 550],
+      "Benchmark Sector Premium": [26.0, 22.0, 48.0, 9.0, 26.0, 20.0, 550],
   })
 
   return df_sucursales, df_pos, df_trend, df_peer
@@ -286,8 +286,8 @@ df_trend_filt = df_trend[df_trend["Sucursal"].isin(sucursales_sel)]
 # ENCABEZADO PRINCIPAL
 # ---------------------------------------------------------
 st.markdown(
-    "<h2 style='color:#0F172A; margin-bottom:0px;'>SSAM • Executive Performance"
-    " & Operations Dashboard</h2>",
+    "<h2 style='color:#0F172A; margin-bottom:0px;'>SSAM • Dashboard Ejecutivo"
+    " de Desempeño y Operaciones</h2>",
     unsafe_allow_html=True,
 )
 st.caption(
@@ -297,9 +297,9 @@ st.caption(
 st.markdown("<br>", unsafe_allow_html=True)
 
 tab1, tab2, tab3 = st.tabs([
-    "📊 1. Matriz Financiera & P&L",
-    "🛍️ 2. Indicadores Punto de Venta (POS) & Operaciones",
-    "🏢 3. Benchmarking Consolidado vs Alsea",
+    "📊 1. Matriz Financiera y P&L",
+    "🛍️ 2. Indicadores Punto de Venta (POS) y Operaciones",
+    "🏢 3. Comparativo de Competitividad (SSAM vs. Alsea)",
 ])
 
 # =========================================================
@@ -318,9 +318,9 @@ with tab1:
   ticket_avg = df_pos_filt["Ticket_Promedio"].mean()
 
   k1.metric("Ventas Totales", f"${total_v:,.0f}")
-  k2.metric("Food Cost %", f"{food_cost_avg:.1f}%", delta="-5.3% vs Alsea")
-  k3.metric("Labor Cost %", f"{labor_cost_avg:.1f}%", delta="-1.0% vs Sector")
-  k4.metric("Margen EBITDA %", f"{ebitda_avg:.1f}%", delta="+2.1% vs 2025")
+  k2.metric("Food Cost %", f"{food_cost_avg:.1f}%", delta="-5.3% vs. Alsea")
+  k3.metric("Labor Cost %", f"{labor_cost_avg:.1f}%", delta="-1.0% vs. Sector")
+  k4.metric("Margen EBITDA %", f"{ebitda_avg:.1f}%", delta="+2.1% vs. 2025")
   k5.metric("Ticket Promedio", f"${ticket_avg:.0f}")
 
   st.markdown("<br>", unsafe_allow_html=True)
@@ -329,8 +329,8 @@ with tab1:
 
   with col_rev:
     st.markdown(
-        "<div class='chart-header'>Revenue By Branch (Actual vs"
-        " Budget)</div>",
+        "<div class='chart-header'>Ingresos por Sucursal (Real vs."
+        " Presupuesto)</div>",
         unsafe_allow_html=True,
     )
     fig_r1 = go.Figure()
@@ -338,7 +338,7 @@ with tab1:
         go.Bar(
             x=df_suc_filt["Sucursal"],
             y=df_suc_filt["Ventas_Real"],
-            name="Actual",
+            name="Real",
             marker_color=COLOR_RED,
         )
     )
@@ -346,7 +346,7 @@ with tab1:
         go.Bar(
             x=df_suc_filt["Sucursal"],
             y=df_suc_filt["Ventas_Presupuesto"],
-            name="Budget",
+            name="Presupuesto",
             marker_color=COLOR_BLUE,
         )
     )
@@ -362,7 +362,7 @@ with tab1:
     st.plotly_chart(fig_r1, use_container_width=True)
 
     st.markdown(
-        "<div class='chart-header'>Revenue Trend (Monthly)</div>",
+        "<div class='chart-header'>Tendencia de Ingresos (Mensual)</div>",
         unsafe_allow_html=True,
     )
     df_m_rev = (
@@ -375,7 +375,7 @@ with tab1:
         go.Bar(
             x=df_m_rev["Mes"],
             y=df_m_rev["Ventas_Actual"],
-            name="Actual",
+            name="Real",
             marker_color=COLOR_RED,
         )
     )
@@ -383,7 +383,7 @@ with tab1:
         go.Bar(
             x=df_m_rev["Mes"],
             y=df_m_rev["Ventas_Budget"],
-            name="Budget",
+            name="Presupuesto",
             marker_color=COLOR_BLUE,
         )
     )
@@ -397,7 +397,8 @@ with tab1:
     st.plotly_chart(fig_r2, use_container_width=True)
 
     st.markdown(
-        "<div class='chart-header'>Top Branches By Revenue Share</div>",
+        "<div class='chart-header'>Participación de Ingresos por"
+        " Sucursal</div>",
         unsafe_allow_html=True,
     )
     fig_r3 = px.pie(
@@ -417,8 +418,8 @@ with tab1:
 
   with col_exp:
     st.markdown(
-        "<div class='chart-header'>Expenses By Branch (Food vs Labor"
-        " Cost)</div>",
+        "<div class='chart-header'>Estructura de Costos Directos (Alimentos"
+        " vs. Nómina)</div>",
         unsafe_allow_html=True,
     )
     fig_e1 = go.Figure()
@@ -426,7 +427,7 @@ with tab1:
         go.Bar(
             x=df_suc_filt["Sucursal"],
             y=df_suc_filt["Food_Cost_%"],
-            name="Food Cost %",
+            name="Food Cost % (Alimentos)",
             marker_color=COLOR_GOLD,
         )
     )
@@ -434,7 +435,7 @@ with tab1:
         go.Bar(
             x=df_suc_filt["Sucursal"],
             y=df_suc_filt["Labor_Cost_%"],
-            name="Labor Cost %",
+            name="Labor Cost % (Nómina)",
             marker_color=COLOR_CYAN,
         )
     )
@@ -450,8 +451,8 @@ with tab1:
     st.plotly_chart(fig_e1, use_container_width=True)
 
     st.markdown(
-        "<div class='chart-header'>Expense Trend (Monthly Direct"
-        " Costs)</div>",
+        "<div class='chart-header'>Tendencia de Gastos (Costos Directos"
+        " Mensuales)</div>",
         unsafe_allow_html=True,
     )
     df_m_exp = df_trend_filt.groupby("Mes")["Costos_Actual"].sum().reset_index()
@@ -470,7 +471,8 @@ with tab1:
     st.plotly_chart(fig_e2, use_container_width=True)
 
     st.markdown(
-        "<div class='chart-header'>Top Branches By Rent Expense %</div>",
+        "<div class='chart-header'>Participación de Gasto en Renta por"
+        " Sucursal</div>",
         unsafe_allow_html=True,
     )
     fig_e3 = px.pie(
@@ -490,7 +492,7 @@ with tab1:
 
   with col_prof:
     st.markdown(
-        "<div class='chart-header'>EBITDA By Branch ($ & %)</div>",
+        "<div class='chart-header'>EBITDA por Sucursal ($ y %)</div>",
         unsafe_allow_html=True,
     )
     fig_p1 = px.bar(
@@ -509,7 +511,8 @@ with tab1:
     st.plotly_chart(fig_p1, use_container_width=True)
 
     st.markdown(
-        "<div class='chart-header'>Profit Trend (Monthly EBITDA)</div>",
+        "<div class='chart-header'>Tendencia de Utilidad (EBITDA"
+        " Mensual)</div>",
         unsafe_allow_html=True,
     )
     df_m_prof = (
@@ -530,7 +533,7 @@ with tab1:
     st.plotly_chart(fig_p2, use_container_width=True)
 
     st.markdown(
-        "<div class='chart-header'>Top Branches By EBITDA Contribution</div>",
+        "<div class='chart-header'>Contribución al EBITDA por Sucursal</div>",
         unsafe_allow_html=True,
     )
     fig_p3 = px.pie(
@@ -552,13 +555,12 @@ with tab1:
 # PESTAÑA 2: REQUERIMIENTOS DE PUNTO DE VENTA (POS) & OPERACIONES
 # =========================================================
 with tab2:
-  st.subheader("Indicadores Operativos & Punto de Venta (POS)")
+  st.subheader("Indicadores Operativos y de Punto de Venta (POS)")
   st.caption(
       "Métricas extraídas directamente del sistema de caja, terminales TPV y"
       " plantilla de personal."
   )
 
-  # KPIs de Control Operativo
   p_k1, p_k2, p_k3, p_k4, p_k5 = st.columns(5)
   total_bruto = df_pos_filt["Ventas_Brutas"].sum()
   desc_total = df_pos_filt["Monto_Descuentos"].sum()
@@ -569,11 +571,11 @@ with tab2:
 
   p_k1.metric("Venta Bruta Total", f"${total_bruto:,.0f}")
   p_k2.metric(
-      "Descuentos & Cortesías",
+      "Descuentos y Cortesías",
       f"{desc_pct_avg:.1f}%",
       delta=f"-${desc_total:,.0f}",
   )
-  p_k3.metric("Comisiones TPV / Apps %", f"{comis_tpv_avg:.1f}%")
+  p_k3.metric("Comisiones TPV y Apps %", f"{comis_tpv_avg:.1f}%")
   p_k4.metric("Rotación de Mesa (Vueltas/día)", f"{vueltas_avg:.2f} pax/asiento")
   p_k5.metric("Venta Mensual / Empleado", f"${venta_emp_avg:,.0f}")
 
@@ -590,8 +592,8 @@ with tab2:
     fig_chan = px.bar(
         df_pos_filt,
         x="Sucursal",
-        y=["Canal_Comedor_%", "Canal_Takeout_%", "Canal_Delivery_%"],
-        labels={"value": "Porcentaje %", "variable": "Canal"},
+        y=["Comedor", "Para Llevar", "Delivery"],
+        labels={"value": "Porcentaje %", "variable": "Canal de Venta"},
         template="plotly_white",
         color_discrete_sequence=[COLOR_RED, COLOR_GOLD, COLOR_BLUE],
     )
@@ -606,8 +608,8 @@ with tab2:
     st.plotly_chart(fig_chan, use_container_width=True)
 
     st.markdown(
-        "<div class='chart-header'>Controles POS: Descuentos/Cortesías vs"
-        " Comisiones TPV & Delivery (%)</div>",
+        "<div class='chart-header'>Controles POS: Descuentos/Cortesías vs."
+        " Comisiones TPV y Delivery (%)</div>",
         unsafe_allow_html=True,
     )
     fig_ctrl = go.Figure()
@@ -615,7 +617,7 @@ with tab2:
         go.Bar(
             x=df_pos_filt["Sucursal"],
             y=df_pos_filt["Descuentos_Cortesias_%"],
-            name="Descuentos & Cortesías %",
+            name="Descuentos y Cortesías %",
             marker_color=COLOR_PURPLE,
         )
     )
@@ -623,7 +625,7 @@ with tab2:
         go.Bar(
             x=df_pos_filt["Sucursal"],
             y=df_pos_filt["Comision_TPV_Delivery_%"],
-            name="Comisiones TPV & Delivery %",
+            name="Comisiones TPV y Delivery %",
             marker_color=COLOR_CYAN,
         )
     )
@@ -640,18 +642,13 @@ with tab2:
 
   with pos_col2:
     st.markdown(
-        "<div class='chart-header'>Mix de Producto por Categoría (%)</div>",
+        "<div class='chart-header'>Mezcla de Producto por Categoría (%)</div>",
         unsafe_allow_html=True,
     )
     fig_cat = px.bar(
         df_pos_filt,
         x="Sucursal",
-        y=[
-            "Cat_Alimentos_%",
-            "Cat_Bebidas_NoAlc_%",
-            "Cat_Bebidas_Alc_%",
-            "Cat_Postres_%",
-        ],
+        y=["Alimentos", "Bebidas No Alc.", "Bebidas Alc.", "Postres"],
         labels={"value": "Porcentaje %", "variable": "Categoría"},
         template="plotly_white",
         color_discrete_sequence=[COLOR_GREEN, COLOR_CYAN, COLOR_GOLD, COLOR_PURPLE],
@@ -668,7 +665,7 @@ with tab2:
 
     st.markdown(
         "<div class='chart-header'>Productividad Operativa: Vueltas de Mesa /"
-        " Día vs Plantilla (Headcount)</div>",
+        " Día vs. Plantilla de Personal</div>",
         unsafe_allow_html=True,
     )
     fig_prod = go.Figure()
@@ -695,7 +692,7 @@ with tab2:
         height=260,
         margin=dict(t=10, b=10, l=10, r=10),
         yaxis=dict(title="Vueltas/Día"),
-        yaxis2=dict(title="Headcount", overlaying="y", side="right"),
+        yaxis2=dict(title="Plantilla", overlaying="y", side="right"),
         legend=dict(
             orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
         ),
@@ -703,46 +700,63 @@ with tab2:
     st.plotly_chart(fig_prod, use_container_width=True)
 
   st.subheader("Tabla Detallada de Módulos POS por Sucursal")
+  df_display_pos = df_pos_filt[[
+      "Sucursal",
+      "Ventas_Brutas",
+      "Ventas_Netas",
+      "Descuentos_Cortesias_%",
+      "Comision_TPV_Delivery_%",
+      "Comensales_Mes",
+      "Tickets_Mes",
+      "Ticket_Promedio",
+      "Vueltas_Mesa_Dia",
+      "Headcount",
+      "Venta_por_Empleado",
+  ]].copy()
+
+  df_display_pos.columns = [
+      "Sucursal",
+      "Venta Bruta",
+      "Venta Neta",
+      "Descuentos %",
+      "Comisiones TPV %",
+      "Comensales/Mes",
+      "Tickets/Mes",
+      "Ticket Promedio",
+      "Vueltas Mesa/Día",
+      "Plantilla",
+      "Venta/Empleado",
+  ]
+
   st.dataframe(
-      df_pos_filt[[
-          "Sucursal",
-          "Ventas_Brutas",
-          "Ventas_Netas",
-          "Descuentos_Cortesias_%",
-          "Comision_TPV_Delivery_%",
-          "Comensales_Mes",
-          "Tickets_Mes",
-          "Ticket_Promedio",
-          "Vueltas_Mesa_Dia",
-          "Headcount",
-          "Venta_por_Empleado",
-      ]].style.format({
-          "Ventas_Brutas": "${:,.0f}",
-          "Ventas_Netas": "${:,.0f}",
-          "Descuentos_Cortesias_%": "{:.1f}%",
-          "Comision_TPV_Delivery_%": "{:.1f}%",
-          "Comensales_Mes": "{:,.0f}",
-          "Tickets_Mes": "{:,.0f}",
-          "Ticket_Promedio": "${:,.0f}",
-          "Vueltas_Mesa_Dia": "{:.2f}",
-          "Headcount": "{:.0f}",
-          "Venta_por_Empleado": "${:,.0f}",
+      df_display_pos.style.format({
+          "Venta Bruta": "${:,.0f}",
+          "Venta Neta": "${:,.0f}",
+          "Descuentos %": "{:.1f}%",
+          "Comisiones TPV %": "{:.1f}%",
+          "Comensales/Mes": "{:,.0f}",
+          "Tickets/Mes": "{:,.0f}",
+          "Ticket Promedio": "${:,.0f}",
+          "Vueltas Mesa/Día": "{:.2f}",
+          "Plantilla": "{:.0f}",
+          "Venta/Empleado": "${:,.0f}",
       }),
       use_container_width=True,
   )
 
 # =========================================================
-# PESTAÑA 3: PEER COMPARISON VS ALSEA & SECTOR
+# PESTAÑA 3: COMPARATIVO DE COMPETITIVIDAD (SSAM VS ALSEA)
 # =========================================================
 with tab3:
-  st.subheader("Benchmarking Consolidado: SSAM vs Alsea & Sector Premium")
+  st.subheader("Benchmarking Consolidado: SSAM vs. Alsea y Sector Premium")
   st.caption("Fondo blanco corporativo para reporte de comparabilidad.")
 
   cp1, cp2, cp3 = st.columns(3)
 
   with cp1:
     st.markdown(
-        "<div class='chart-header'>Costo Materia Prima vs Peer Group</div>",
+        "<div class='chart-header'>Costo de Materia Prima vs. Grupo"
+        " Comparable</div>",
         unsafe_allow_html=True,
     )
     fig_peer_food = px.bar(
@@ -751,7 +765,7 @@ with tab3:
         y=[
             "SSAM (Consolidado 2026)",
             "Alsea (Casual Dining MX)",
-            "Benchmark Casual Premium",
+            "Benchmark Sector Premium",
         ],
         barmode="group",
         template="plotly_white",
@@ -768,7 +782,7 @@ with tab3:
 
   with cp2:
     st.markdown(
-        "<div class='chart-header'>Prime Cost (Food + Labor %)</div>",
+        "<div class='chart-header'>Prime Cost (Materia Prima + Nómina %)</div>",
         unsafe_allow_html=True,
     )
     fig_peer_prime = px.bar(
@@ -777,7 +791,7 @@ with tab3:
         y=[
             "SSAM (Consolidado 2026)",
             "Alsea (Casual Dining MX)",
-            "Benchmark Casual Premium",
+            "Benchmark Sector Premium",
         ],
         barmode="group",
         template="plotly_white",
@@ -799,7 +813,7 @@ with tab3:
         y=[
             "SSAM (Consolidado 2026)",
             "Alsea (Casual Dining MX)",
-            "Benchmark Casual Premium",
+            "Benchmark Sector Premium",
         ],
         barmode="group",
         template="plotly_white",
