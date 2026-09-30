@@ -656,4 +656,160 @@ with tab2:
         template="plotly_white",
         color_discrete_sequence=[COLOR_GREEN, COLOR_CYAN, COLOR_GOLD, COLOR_PURPLE],
     )
-    fig_cat.upda
+    fig_cat.update_layout(
+        barmode="stack",
+        height=260,
+        margin=dict(t=10, b=10, l=10, r=10),
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+        ),
+    )
+    st.plotly_chart(fig_cat, use_container_width=True)
+
+    st.markdown(
+        "<div class='chart-header'>Productividad Operativa: Vueltas de Mesa /"
+        " Día vs Plantilla (Headcount)</div>",
+        unsafe_allow_html=True,
+    )
+    fig_prod = go.Figure()
+    fig_prod.add_trace(
+        go.Bar(
+            x=df_pos_filt["Sucursal"],
+            y=df_pos_filt["Vueltas_Mesa_Dia"],
+            name="Vueltas de Mesa / Día",
+            marker_color=COLOR_RED,
+            yaxis="y",
+        )
+    )
+    fig_prod.add_trace(
+        go.Scatter(
+            x=df_pos_filt["Sucursal"],
+            y=df_pos_filt["Headcount"],
+            name="Plantilla (Personas)",
+            line=dict(color=COLOR_BLUE, width=3),
+            yaxis="y2",
+        )
+    )
+    fig_prod.update_layout(
+        template="plotly_white",
+        height=260,
+        margin=dict(t=10, b=10, l=10, r=10),
+        yaxis=dict(title="Vueltas/Día"),
+        yaxis2=dict(title="Headcount", overlaying="y", side="right"),
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+        ),
+    )
+    st.plotly_chart(fig_prod, use_container_width=True)
+
+  st.subheader("Tabla Detallada de Módulos POS por Sucursal")
+  st.dataframe(
+      df_pos_filt[[
+          "Sucursal",
+          "Ventas_Brutas",
+          "Ventas_Netas",
+          "Descuentos_Cortesias_%",
+          "Comision_TPV_Delivery_%",
+          "Comensales_Mes",
+          "Tickets_Mes",
+          "Ticket_Promedio",
+          "Vueltas_Mesa_Dia",
+          "Headcount",
+          "Venta_por_Empleado",
+      ]].style.format({
+          "Ventas_Brutas": "${:,.0f}",
+          "Ventas_Netas": "${:,.0f}",
+          "Descuentos_Cortesias_%": "{:.1f}%",
+          "Comision_TPV_Delivery_%": "{:.1f}%",
+          "Comensales_Mes": "{:,.0f}",
+          "Tickets_Mes": "{:,.0f}",
+          "Ticket_Promedio": "${:,.0f}",
+          "Vueltas_Mesa_Dia": "{:.2f}",
+          "Headcount": "{:.0f}",
+          "Venta_por_Empleado": "${:,.0f}",
+      }),
+      use_container_width=True,
+  )
+
+# =========================================================
+# PESTAÑA 3: PEER COMPARISON VS ALSEA & SECTOR
+# =========================================================
+with tab3:
+  st.subheader("Benchmarking Consolidado: SSAM vs Alsea & Sector Premium")
+  st.caption("Fondo blanco corporativo para reporte de comparabilidad.")
+
+  cp1, cp2, cp3 = st.columns(3)
+
+  with cp1:
+    st.markdown(
+        "<div class='chart-header'>Costo Materia Prima vs Peer Group</div>",
+        unsafe_allow_html=True,
+    )
+    fig_peer_food = px.bar(
+        df_peer[df_peer["Métrica"].str.contains("Food Cost")],
+        x="Métrica",
+        y=[
+            "SSAM (Consolidado 2026)",
+            "Alsea (Casual Dining MX)",
+            "Benchmark Casual Premium",
+        ],
+        barmode="group",
+        template="plotly_white",
+        color_discrete_sequence=[COLOR_RED, COLOR_GOLD, COLOR_BLUE],
+    )
+    fig_peer_food.update_layout(
+        height=280,
+        margin=dict(t=10, b=10, l=10, r=10),
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+        ),
+    )
+    st.plotly_chart(fig_peer_food, use_container_width=True)
+
+  with cp2:
+    st.markdown(
+        "<div class='chart-header'>Prime Cost (Food + Labor %)</div>",
+        unsafe_allow_html=True,
+    )
+    fig_peer_prime = px.bar(
+        df_peer[df_peer["Métrica"].str.contains("Prime Cost")],
+        x="Métrica",
+        y=[
+            "SSAM (Consolidado 2026)",
+            "Alsea (Casual Dining MX)",
+            "Benchmark Casual Premium",
+        ],
+        barmode="group",
+        template="plotly_white",
+        color_discrete_sequence=[COLOR_RED, COLOR_GOLD, COLOR_BLUE],
+    )
+    fig_peer_prime.update_layout(
+        height=280, showlegend=False, margin=dict(t=10, b=10, l=10, r=10)
+    )
+    st.plotly_chart(fig_peer_prime, use_container_width=True)
+
+  with cp3:
+    st.markdown(
+        "<div class='chart-header'>Margen EBITDA Consolidado %</div>",
+        unsafe_allow_html=True,
+    )
+    fig_peer_ebitda = px.bar(
+        df_peer[df_peer["Métrica"].str.contains("Margen EBITDA")],
+        x="Métrica",
+        y=[
+            "SSAM (Consolidado 2026)",
+            "Alsea (Casual Dining MX)",
+            "Benchmark Casual Premium",
+        ],
+        barmode="group",
+        template="plotly_white",
+        color_discrete_sequence=[COLOR_RED, COLOR_GOLD, COLOR_BLUE],
+    )
+    fig_peer_ebitda.update_layout(
+        height=280, showlegend=False, margin=dict(t=10, b=10, l=10, r=10)
+    )
+    st.plotly_chart(fig_peer_ebitda, use_container_width=True)
+
+  st.markdown("---")
+  st.subheader("Tabla Comparativa General")
+  st.dataframe(df_peer, use_container_width=True)
